@@ -2,25 +2,52 @@
 pragma solidity ^0.8.9; // ^0.8.0;
 
 import "hardhat/console.sol";
+import "./Token.sol";
 
-contract Token {
-    string public name; // = "My Token";
-    string public symbol; // = "DAPP";
-    uint256 public decimals = 18;
-    uint256 public totalSupply; // = 1000000 * (10 ** decimals); // = 1 000 000
+contract Exchange {
+    address public feeAccount;
+    uint256 public feePercent;
+    mapping(address => mapping(address => uint256)) public tokens;
 
-    mapping(address => uint256) public balanceOf;
-    //owner             //spender
-    mapping(address => mapping(address => uint256)) public allowance;
+    constructor(address _feeAccount, uint256 _feePercent) {
+        feeAccount = _feeAccount;
+        feePercent = _feePercent;
+    }
 
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
+    event Deposit(address token, address user, uint256 amount, uint256 balance);
 
-    constructor(
+    //Deposit
+    function depositToken(address _token, uint256 _amount) public {
+        //transf tokens to exchange
+        bool successTx = Token(_token).transferFrom(msg.sender, address(this), _amount);
+        require(successTx, "token approval failed");
+
+        //update user balance
+        tokens[_token][msg.sender] += _amount;
+
+        //event
+        uint256 newBalance = balanceOf(_token, address(msg.sender));
+        emit Deposit(_token, msg.sender, _amount, newBalance);
+
+    }
+    function balanceOf(address _token, address _user) public view returns (uint256) 
+    {
+        return tokens[_token][_user];
+    }
+    //withdraw
+    //check balance
+
+    //make orders
+    //cancel
+    //fill orders
+
+    //charge fees
+    //track fee account
+}
+
+/*
+
+constructor(
         string memory _name,
         string memory _symbol,
         uint256 _totalSupply
@@ -49,13 +76,10 @@ contract Token {
         uint256 _value
     ) public returns (bool success) {
 
-        // console.log("debug: ", _from, _to, _value);
-
         bool senderHasEnoughTokens = _value <= balanceOf[_from];
-        require(senderHasEnoughTokens, "insufficient balance of tokens");
-
         bool senderHasEnoughAllowance = _value <= allowance[_from][msg.sender];
-        require(senderHasEnoughAllowance, "insufficient allowance");
+        require(senderHasEnoughAllowance);
+        require(senderHasEnoughTokens);
 
         allowance[_from][msg.sender] = allowance[_from][msg.sender] - _value;
 
@@ -85,4 +109,7 @@ contract Token {
 
         return true;
     }
-}
+
+
+
+*/
