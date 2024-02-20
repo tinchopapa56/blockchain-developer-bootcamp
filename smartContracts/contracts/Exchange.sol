@@ -15,11 +15,26 @@ contract Exchange {
     }
 
     event Deposit(address token, address user, uint256 amount, uint256 balance);
+    event Withdrawal(address token, address user, uint256 amount, uint256 balance);
 
-    //Deposit
+    function withdrawToken(address _token, uint256 _amount) public {
+
+        require(tokens[_token][msg.sender] >= _amount, "insufficient balance");
+        //transfer tokens to user
+        Token(_token).transfer(msg.sender, _amount);
+        //update user balance
+        tokens[_token][msg.sender] -= _amount;
+        //event
+        emit Withdrawal(_token, msg.sender, _amount, tokens[_token][msg.sender] );
+    }
+
     function depositToken(address _token, uint256 _amount) public {
         //transf tokens to exchange
-        bool successTx = Token(_token).transferFrom(msg.sender, address(this), _amount);
+        bool successTx = Token(_token).transferFrom(
+            msg.sender,
+            address(this),
+            _amount
+        );
         require(successTx, "token approval failed");
 
         //update user balance
@@ -28,14 +43,15 @@ contract Exchange {
         //event
         uint256 newBalance = balanceOf(_token, address(msg.sender));
         emit Deposit(_token, msg.sender, _amount, newBalance);
-
     }
-    function balanceOf(address _token, address _user) public view returns (uint256) 
-    {
+
+    function balanceOf(
+        address _token,
+        address _user
+    ) public view returns (uint256) {
         return tokens[_token][_user];
     }
-    //withdraw
-    //check balance
+    /////////////////////////////////////
 
     //make orders
     //cancel
@@ -44,72 +60,3 @@ contract Exchange {
     //charge fees
     //track fee account
 }
-
-/*
-
-constructor(
-        string memory _name,
-        string memory _symbol,
-        uint256 _totalSupply
-    ) {
-        name = _name;
-        symbol = _symbol;
-        totalSupply = _totalSupply * (10 ** decimals);
-        balanceOf[msg.sender] = totalSupply / 10;
-    }
-
-    function transfer(
-        address _to,
-        uint256 _value
-    ) public returns (bool success) {
-        bool sufficientBalance = balanceOf[msg.sender] >= _value;
-        require(sufficientBalance, "Insufficient balance");
-
-        _transfer(msg.sender, _to, _value);
-
-        return true;
-    }
-
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) public returns (bool success) {
-
-        bool senderHasEnoughTokens = _value <= balanceOf[_from];
-        bool senderHasEnoughAllowance = _value <= allowance[_from][msg.sender];
-        require(senderHasEnoughAllowance);
-        require(senderHasEnoughTokens);
-
-        allowance[_from][msg.sender] = allowance[_from][msg.sender] - _value;
-
-        _transfer(_from, _to, _value);
-
-        return true;
-    }
-
-    function _transfer(address _from, address _to, uint256 _value) internal {
-        require(_to != address(0), "Invalid recipient address");
-
-        balanceOf[_from] = balanceOf[_from] - _value;
-        balanceOf[_to] = balanceOf[_to] + _value;
-
-        emit Transfer(_from, _to, _value);
-    }
-
-    function approve(
-        address _spender,
-        uint256 _value
-    ) public returns (bool success) {
-        allowance[msg.sender][_spender] = _value;
-
-        require(_spender != address(0), "Invalid spender");
-
-        emit Approval(msg.sender, _spender, _value);
-
-        return true;
-    }
-
-
-
-*/

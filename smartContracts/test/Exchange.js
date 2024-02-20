@@ -77,4 +77,61 @@ describe('Exchange', () => {
             })
         })
     })
+
+    describe(" WITHDRAW f(x)", () => {
+        let tx, res, amount = tokens(100);
+
+        describe("Success", () => {
+
+            beforeEach(async () => {
+
+                //approve 
+                tx = await token1.connect(user1).approve(exchange.address, amount)
+                res = await tx.wait()
+                //depost
+                tx = await exchange.connect(user1).depositToken(token1.address, amount)
+                res = await tx.wait()
+
+                //WITHDRAW
+                tx = await exchange.connect(user1).withdrawToken(token1.address, amount)
+                res = await tx.wait()
+            })
+
+            it("withdraw token specified amount", async () => {
+                expect(await token1.balanceOf(exchange.address)).to.equal(0)
+                expect(await exchange.tokens(token1.address, user1.address)).to.equal(0)
+                expect(await exchange.balanceOf(token1.address, user1.address)).to.equal(0)
+            })
+            it("emits witdhrawla event", async () => {
+                const event = res.events[1]
+                expect(event.event).to.equal("Withdrawal")
+
+                const args = event.args
+                expect(args.token).to.equal(token1.address)
+                expect(args.user).to.equal(user1.address)
+                expect(args.amount).to.equal(amount)
+                expect(args.balance).to.equal(0)
+            })
+        })
+        describe("Failure", () => {
+            it("fails for insufficient balance ", async () => {
+                const tx_to_fail = exchange.connect(user1).withdrawToken(token1.address, amount)
+                await expect(tx_to_fail).to.be.revertedWith("insufficient balance");
+            })
+        })
+    })
+    describe(" Balance of f(X)", () => {
+        it("returns user balanceracks the token deposit", async () => {
+            let tx, res, amount = tokens(1);
+            //approve 
+            tx = await token1.connect(user1).approve(exchange.address, amount)
+            res = await tx.wait()
+            //depost
+            tx = await exchange.connect(user1).depositToken(token1.address, amount)
+            res = await tx.wait()
+
+            expect(await exchange.balanceOf(token1.address, user1.address)).to.equal(amount)
+        })
+
+    })
 })
