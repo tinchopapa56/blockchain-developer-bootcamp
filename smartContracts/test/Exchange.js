@@ -150,7 +150,7 @@ describe('Exchange', () => {
                 res = await tx.wait()
 
                 //MAKE ORDER 
-                tx = await exchange.connect(user1).makeOrder(token2.address, token1.address, buyAmount, sellAmount)
+                tx = await exchange.connect(user1).makeOrder(token2.address, buyAmount, token1.address, sellAmount)
                 res = await tx.wait()
             })
 
@@ -177,7 +177,7 @@ describe('Exchange', () => {
         describe("Failure", async () => {
 
             it("REJECTS, not enough balance", async () => {
-                await expect(exchange.connect(user1).makeOrder(token1.address, token2.address, tokens(10000), tokens(150000)))
+                await expect(exchange.connect(user1).makeOrder(token1.address, tokens(10000), token2.address, tokens(150000)))
                     .to.be.revertedWith('You have Insufficient balance for making order')
             })
 
@@ -198,7 +198,7 @@ describe('Exchange', () => {
           result = await transaction.wait()
     
           // Make an order
-          transaction = await exchange.connect(user1).makeOrder(token2.address, token1.address, amount, amount)
+          transaction = await exchange.connect(user1).makeOrder(token2.address, amount, token1.address, amount)
           result = await transaction.wait()
         })
 
@@ -236,7 +236,7 @@ describe('Exchange', () => {
                     transaction = await exchange.connect(user1).depositToken(token1.address, amount)
                     result = await transaction.wait()
                     // Make an order
-                    transaction = await exchange.connect(user1).makeOrder(token2.address, token1.address, amount, amount)
+                    transaction = await exchange.connect(user1).makeOrder(token2.address, amount, token1.address, amount)
                     result = await transaction.wait()
                   })
           

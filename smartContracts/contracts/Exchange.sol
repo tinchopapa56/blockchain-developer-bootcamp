@@ -18,8 +18,8 @@ contract Exchange {
         address user;
 
         address tokenToBuy;
-        address tokenToSell;
         uint256 amountToBuy;
+        address tokenToSell;
         uint256 amountToSell;
 
         uint256 timestamp;
@@ -33,10 +33,10 @@ contract Exchange {
     event Deposit(address token, address user, uint256 amount, uint256 balance);
     event Withdrawal(address token, address user, uint256 amount, uint256 balance);
     event CreatedOrder(
-        uint256 id, address user,address tokenToBuy, address tokenToSell,uint256 amountToBuy, uint256 amountToSell,uint256 timestamp
+        uint256 id, address user,address tokenToBuy, uint256 amountToBuy, address tokenToSell, uint256 amountToSell,uint256 timestamp
     );
     event CancelledOrder(
-        uint256 id, address user,address tokenToBuy, address tokenToSell,uint256 amountToBuy, uint256 amountToSell,uint256 timestamp
+        uint256 id, address user,address tokenToBuy, uint256 amountToBuy, address tokenToSell, uint256 amountToSell,uint256 timestamp
     );
 
     function withdrawToken(address _token, uint256 _amount) public {
@@ -71,17 +71,13 @@ contract Exchange {
         return tokens[_token][_user];
     }
 
-    function makeOrder(address _tokenToBuy, address _tokenToSell, uint256 _amountToBuy, uint256 _amountToSell) 
-        public returns (bool) 
-    {
+    function makeOrder(address _tokenToBuy, uint256 _amountToBuy, address _tokenToSell, uint256 _amountToSell) public returns (bool) {
         bool hasEnoughBalance = balanceOf(_tokenToSell,msg.sender) >= _amountToSell;
         require(hasEnoughBalance, "You have Insufficient balance for making order");
 
         ordersCount += 1;
-        orders[ordersCount] = Order(
-            ordersCount, msg.sender, _tokenToBuy, _tokenToSell, _amountToBuy, _amountToSell, block.timestamp
-        );
-        emit CreatedOrder(ordersCount, msg.sender, _tokenToBuy, _tokenToSell, _amountToBuy, _amountToSell, block.timestamp);
+        orders[ordersCount] = Order(ordersCount, msg.sender, _tokenToBuy, _amountToBuy, _tokenToSell, _amountToSell, block.timestamp);
+        emit CreatedOrder(ordersCount, msg.sender, _tokenToBuy, _amountToBuy, _tokenToSell, _amountToSell, block.timestamp);
         return true;
     }
 
@@ -96,7 +92,19 @@ contract Exchange {
 
         ordersCancelled[_orderId] = true;
 
-        emit CancelledOrder(order.id, msg.sender, order.tokenToBuy, order.tokenToSell, order.amountToBuy, order.amountToSell, block.timestamp);
+        emit CancelledOrder(order.id, msg.sender, order.tokenToBuy, order.amountToBuy, order.tokenToSell, order.amountToSell, block.timestamp);
+
+    }
+    function fillOrder(uint256 _orderId) public {
+        Order storage order = orders[_orderId];
+
+        bool orderExists = order.id == _orderId;
+        require(orderExists, "order id doesnt exist");
+
+        bool isOrderCreator = address(order.user) == msg.sender;
+        require(isOrderCreator, "only order creator can cancel it");
+
+        ordersCancelled[_orderId] = true;
 
     }
 }
